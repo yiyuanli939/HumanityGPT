@@ -1,1 +1,1 @@
-This is a platform for humanity students to write their essays and writing sample. It is mainly for the early career humanity and social science students. 
+This is a platform for humanity students to write their essays. It is mainly for the early career humanity and social science students. We want to create a GPT-based platform that is specifically useful for usual homeworks, tutorial essays, and writing samples. 
