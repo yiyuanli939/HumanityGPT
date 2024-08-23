@@ -1,0 +1,1 @@
+This is the report for the frontend development of the HumanityGPT.
