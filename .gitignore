@@ -1,0 +1,51 @@
+# Ignore sensitive files
+.env
+**/config.py
+
+# Ignore Python bytecode files
+__pycache__/
+*.pyc
+
+# Ignore virtual environment
+venv/
+env/
+
+# Ignore IDE-specific files
+.vscode/
+.idea/
+
+# Ignore logs
+*.log
+
+# Ignore macOS system files
+.DS_Store
+
+# Ignore database files
+*.db
+*.sqlite3
+
+# Ignore compiled Python files
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore package build files
+*.egg-info/
+dist/
+build/
+
+# Ignore coverage reports
+.coverage
+htmlcov/
+
+# Ignore temporary files
+*.tmp
+*.swp
+*.swo
+
+# Ignore local development settings
+local_settings.py
+
+# Ignore media and static files (if they are generated dynamically)
+media/
+static/
