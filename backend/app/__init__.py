@@ -4,10 +4,8 @@ from flask_bootstrap import Bootstrap5
 from flask_sqlalchemy import SQLAlchemy
 import pymysql
 
+# Use pymysql to connect to the MySQL database
 pymysql.install_as_MySQLdb()
-
-
-
 
 # Initialize SQLAlchemy
 db = SQLAlchemy()
@@ -21,7 +19,6 @@ def create_app():
     # Configure the MySQL database
     app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://humanitygpt_user:67ti8of87690hm@localhost/humanitygpt'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    db.init_app(app)
 
     # Set template and static folders
     # These are mainly HTML files that are rendered by the backend
@@ -35,11 +32,15 @@ def create_app():
     print(f"Template folder set to: {app.template_folder}")
     print(f"Static folder set to: {app.static_folder}")
 
-    # Import models here to avoid circular imports
+    # Initialize the app with the database
     from .models import User
+    db.init_app(app)
 
+    # Create the database tables
     with app.app_context():
         db.create_all()
+
+
 
     # Define routes (you can move these to a separate file later if desired)
     @app.route('/')
