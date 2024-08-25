@@ -1,37 +1,40 @@
-from flask import Flask 
-from flask_sqlalchemy import SQLAlchemy 
-from flask_migrate import Migrate 
-from config import Config
+import os
+from flask import Flask, render_template
+from flask_bootstrap import Bootstrap5
 
-# Create SQLAlchemy and Migrate instances without initializing them yet
-db = SQLAlchemy()
-migrate = Migrate()
 
 def create_app():
     # Create the Flask application instance
     app = Flask(__name__)
-    
-    # Load the configuration from the Config class
-    app.config.from_object(Config)
+    Bootstrap5(app)
 
-    # Initialize SQLAlchemy with this app
-    db.init_app(app)
-    
-    # Initialize Flask-Migrate with this app and db
-    migrate.init_app(app, db)
 
-    # Import the routes module
-    from .routes import auth, projects, notes, pdfs
-    # Register the blueprints
-    app.register_blueprint(auth.bp)
-    app.register_blueprint(projects.bp)
-    app.register_blueprint(notes.bp)
-    app.register_blueprint(pdfs.bp)
+    # Set the template folder to the frontend directory
+    # These are mainly HTML files that are rendered by the backend
+    template_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'frontend', 'templates'))
+    app.template_folder = template_dir
 
-    # Define a simple route
+    # Set the static folder
+    # These are mainly CSS, JavaScript, and image files that are served by the backend
+    static_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'frontend', 'static'))
+    app.static_folder = static_dir
+
+    print(f"Template folder set to: {app.template_folder}")
+    print(f"Static folder set to: {app.static_folder}")
+
+    # Define the main route
     @app.route('/')
-    def hello():
-        return "Welcome to HumanityGPT!"
+    def index():
+        return render_template('index.html')
+    
+    @app.route('/user/<name>')
+    def user(name):
+        return render_template('user.html',name = name)
+    
+    # Define a test route
+    @app.route('/test')
+    def test():
+        return render_template('test.html')
 
     # Return the configured app instance
     return app
