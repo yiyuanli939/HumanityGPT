@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template
+from flask import Flask, render_template, redirect, url_for, flash
 from flask_bootstrap import Bootstrap5
 from flask_sqlalchemy import SQLAlchemy
 import pymysql
@@ -19,6 +19,8 @@ def create_app():
     # Configure the MySQL database
     app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://humanitygpt_user:67ti8of87690hm@localhost/humanitygpt'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    # Add a secret key for CSRF protection
+    app.config['SECRET_KEY'] = '2b62b1cb0b257df9d873558f82151351e15c6ff268b20941'  
 
     # Set template and static folders
     # These are mainly HTML files that are rendered by the backend
@@ -47,9 +49,12 @@ def create_app():
     def index():
         return render_template('index.html')
     
+    # Add a new route for user pages
     @app.route('/user/<name>')
     def user(name):
-        return render_template('user.html',name = name)
+        user = User.query.filter_by(username=name).first_or_404()
+        return render_template('user.html', user=user)
+
     
     @app.route('/test')
     def test():
@@ -62,6 +67,34 @@ def create_app():
             return "Database connection successful!"
         except Exception as e:
             return f"Database connection failed: {str(e)}"
+        
+    # Add this new route for registration
+    @app.route('/register', methods=['GET', 'POST'])
+    def register():
+        from .forms import RegistrationForm
+        form = RegistrationForm()
+        if form.validate_on_submit():
+            user = User(username=form.username.data, email=form.email.data)
+            db.session.add(user)
+            db.session.commit()
+            flash('Congratulations, you are now a registered user!')
+            return redirect(url_for('index'))
+        return render_template('register.html', title='Register', form=form)
+
+    # Add a log-in route
+    @app.route('/login', methods=['GET', 'POST'])
+    def login():
+        from .forms import LoginForm  # Import the login form
+        form = LoginForm()
+        if form.validate_on_submit():
+            user = User.query.filter_by(username=form.username.data).first()
+            if user:
+                # Redirect to the user's personal page after a successful login
+                return redirect(url_for('user', name=user.username))
+            else:
+                flash('Login unsuccessful. Please check your username.', 'danger')
+        return render_template('login.html', title='Login', form=form)
+
 
     # Return the configured app instance
     return app

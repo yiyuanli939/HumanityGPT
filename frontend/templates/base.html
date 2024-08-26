@@ -1,70 +1,121 @@
 <!DOCTYPE html>
-<!-- Declares that this is an HTML5 document -->
+<!-- Declares this document is an HTML5 document -->
 
 <html lang="en">
-<!-- The root element of the HTML page, with language set to English -->
+<!-- The root element of the HTML page, language set to English for accessibility -->
 
 <head>
-    <!-- Contains meta information about the HTML page -->
+    <!-- Meta information about the HTML page -->
 
     <meta charset="UTF-8">
-    <!-- Specifies the character encoding for the HTML document (UTF-8 is a universal character set) -->
+    <!-- Specifies the character encoding for the HTML document (UTF-8 is a standard encoding) -->
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Ensures proper rendering on mobile devices and allows for responsive design -->
+    <!-- Ensures the page is responsive and scales properly on all devices -->
 
     <title>{% block title %}HumanityGPT{% endblock %}</title>
     <!-- 
-    Defines a block for the page title. 
+    A block for the page title. 
     Child templates can override this block to set a custom title.
     If not overridden, the default title will be "HumanityGPT".
     -->
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Includes the Bootstrap CSS file from a CDN for styling -->
+    <!-- 
+    Includes the Bootstrap CSS file from a CDN for styling. 
+    Bootstrap is used for responsive design and pre-built UI components.
+    -->
 
     {% block extra_css %}{% endblock %}
     <!-- 
-    Defines a block for additional CSS.
-    Child templates can use this block to add page-specific CSS.
+    Defines a block for additional CSS. 
+    Child templates can override this block to add page-specific styles.
     -->
 </head>
 
 <body>
-    <!-- The visible content of the HTML page -->
+    <!-- The content of the HTML page -->
 
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <!-- Navigation bar using Bootstrap classes -->
+        <!-- Bootstrap navigation bar with light background -->
         <div class="container-fluid">
             <!-- Full-width container for the navbar content -->
             <a class="navbar-brand" href="{{ url_for('index') }}">HumanityGPT</a>
             <!-- 
-            Brand/logo for the navbar. 
-            'url_for('index')' is a Flask function that generates the URL for the index route.
+            Brand/logo link for the navbar. 
+            'url_for('index')' generates the URL for the index route.
             -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <!-- Responsive toggle button for collapsing the navbar on smaller screens -->
+                <span class="navbar-toggler-icon"></span>
+                <!-- Icon for the toggle button -->
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <!-- Collapsible section for navbar links -->
+                <ul class="navbar-nav ms-auto">
+                    <!-- Aligns navbar links to the right -->
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="{{ url_for('index') }}">Home</a>
+                        <!-- Active link for the home page -->
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('register') }}">Register</a>
+                        <!-- Link to the registration page -->
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+                        <!-- Link to the login page -->
+                    </li>
+                </ul>
+            </div>
         </div>
     </nav>
 
     <div class="container mt-4">
-        <!-- Main content container with top margin -->
+        <!-- Main content container with a top margin -->
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        <!-- Capture flashed messages for display -->
+        {% if messages %}
+        <div class="flash-messages">
+            <!-- Container for flash messages -->
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                <!-- Bootstrap alert for each message -->
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                <!-- Close button for dismissing the alert -->
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+        <!-- 
+        Block for displaying flash messages (e.g., success, error messages).
+        Flashed messages are shown here in a Bootstrap-styled alert.
+        -->
 
         {% block content %}
-        {% endblock %}
         <!-- 
-        Defines a block for the main content.
+        Block for main content. 
         Child templates will override this block with their specific content.
         -->
+        {% endblock %}
     </div>
 
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Includes the Bootstrap JavaScript file from a CDN for interactive components -->
+    <!-- 
+    Includes the Bootstrap JavaScript file from a CDN for interactive components. 
+    The bundle includes Popper.js for tooltips and popovers.
+    -->
 
     {% block extra_js %}{% endblock %}
     <!-- 
-    Defines a block for additional JavaScript.
-    Child templates can use this block to add page-specific scripts.
+    Block for additional JavaScript.
+    Child templates can override this block to add page-specific scripts.
     -->
 </body>
 </html>

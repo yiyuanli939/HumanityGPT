@@ -1,22 +1,73 @@
 {% extends "base.html" %}
+<!-- This line tells Flask to use 'base.html' as the base template. 
+     'base.html' typically contains the overall structure of the page, such as the header, footer, and main content area. -->
 
 {% block title %}Home - HumanityGPT{% endblock %}
+<!-- This block sets the title of the webpage, which appears in the browser tab. 
+     The 'title' block in 'base.html' will be replaced by "Home - HumanityGPT". -->
 
 {% block content %}
+<!-- This block defines the main content of the page. 
+     Anything inside this block will be inserted into the 'content' block of 'base.html'. -->
+
     <h1 class="mb-4">Welcome to HumanityGPT</h1>
+    <!-- This is the main heading of the page. 
+         The 'mb-4' class adds a margin-bottom of '4' (a spacing utility provided by Bootstrap). -->
+
     <p class="lead">This is a simple example of using Bootstrap with Flask.</p>
-    <p class="lead">We want to create a space for humanity students develop their writing skills.</p>
+    <!-- This paragraph introduces the page content. 
+         The 'lead' class is a Bootstrap utility that makes the text stand out as an introductory paragraph. -->
+
+    <p class="lead">We want to create a space for humanity students to develop their writing skills.</p>
+    <!-- Another lead paragraph explaining the purpose of the website. -->
 
     <div class="row">
+        <!-- This 'row' div creates a horizontal group of columns using Bootstrap's grid system. -->
+
         <div class="col-md-6">
+            <!-- This 'col-md-6' div creates a column that spans 6 out of 12 columns on medium-sized screens and up. 
+                 It will take up half the width of the row. -->
+
             <h2>Column 1</h2>
+            <!-- A secondary heading for the first column. -->
+
             <p>This is some content in the first column.</p>
+            <!-- A paragraph of content within the first column. -->
+
             <button class="btn btn-primary">Learn More</button>
+            <!-- A button with the Bootstrap class 'btn btn-primary', which styles it as a blue button. 
+                 This button could be linked to another page or an action in the future. -->
         </div>
+
         <div class="col-md-6">
+            <!-- This is the second column, also taking up 6 out of 12 columns on medium-sized screens and up. -->
+
             <h2>Column 2</h2>
+            <!-- A secondary heading for the second column. -->
+
             <p>This is some content in the second column.</p>
+            <!-- A paragraph of content within the second column. -->
+
             <button class="btn btn-secondary">Contact Us</button>
+            <!-- A button with the Bootstrap class 'btn btn-secondary', which styles it as a gray button. 
+                 This could be linked to a contact page or form in the future. -->
         </div>
     </div>
+
+    <!-- Adding a Register Button -->
+    <div class="mt-5 text-center">
+        <!-- This 'div' centers the content inside it and adds a top margin of '5' (Bootstrap spacing utility). -->
+
+        <a href="{{ url_for('register') }}" class="btn btn-success btn-lg">Register Now</a>
+        <!-- This is an anchor tag styled as a button using Bootstrap classes.
+             'btn btn-success' styles it as a green button, and 'btn-lg' makes it larger than standard buttons.
+             The 'href="{{ url_for('register') }}"' generates the URL for the 'register' route in your Flask app.
+             This button directs users to the registration page. -->
+    </div>
+     <!-- Adding a Login Button -->
+    <div class="mt-3 text-center">
+        <a href="{{ url_for('login') }}" class="btn btn-info btn-lg">Login</a>
+    </div>
+
 {% endblock %}
+<!-- This ends the 'content' block, which will be inserted into the 'base.html' template's corresponding block. -->
