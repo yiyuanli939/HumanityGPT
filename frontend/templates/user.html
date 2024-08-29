@@ -1,9 +1,22 @@
 {% extends "base.html" %}
-
-{% block title %}User Page - {{ user }}{% endblock %}
-
+{% block title %}User Page - {{ user.username }}{% endblock %}
 {% block content %}
-    <h1>Hello, {{ user }}!</h1>
+    <h1>Hello, {{ user.username }}!</h1>
     <p>Welcome to your personalized page.</p>
     <p>Here you can develop your projects and write your essays.</p>
+
+    <h2>Your Documents</h2>
+    {% if documents %}
+        <ul>
+        {% for document in documents %}
+            <li>
+                <a href="{{ url_for('view_document', id=document.id) }}">{{ document.title }}</a>
+            </li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>You haven't created any documents yet.</p>
+    {% endif %}
+
+    <a href="{{ url_for('documents') }}" class="btn btn-primary">Manage Your Documents</a>
 {% endblock %}

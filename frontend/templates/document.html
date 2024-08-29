@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Your Documents{% endblock %}
+{% block content %}
+    <h1 class="mb-4">Your Documents</h1>
+    
+    <!-- List of existing documents -->
+    <h2>Your Existing Documents</h2>
+    {% if documents %}
+        <ul class="list-group">
+        {% for document in documents %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                {{ document.title }}
+                <div>
+                    <a href="{{ url_for('view_document', id=document.id) }}" class="btn btn-sm btn-info">View</a>
+                    <form method="POST" action="{{ url_for('delete_document', id=document.id) }}" style="display: inline;">
+                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this document?');">Delete</button>
+                    </form>
+                </div>
+            </li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>You have no documents yet.</p>
+    {% endif %}
+
+    <!-- Create new document button -->
+    <a href="{{ url_for('create_document') }}" class="btn btn-primary mt-3">Create New Document</a>
+
+    <!-- Back to user page button -->
+    <a href="{{ url_for('user', name=current_user.username) }}" class="btn btn-secondary mt-3">Back to Your Page</a>
+{% endblock %}

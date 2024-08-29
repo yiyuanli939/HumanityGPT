@@ -1,47 +1,52 @@
 import os
-from flask import Flask, render_template, redirect, url_for, flash
-from flask_bootstrap import Bootstrap5
-from flask_sqlalchemy import SQLAlchemy
-import pymysql
+from flask import Flask, render_template, redirect, url_for, flash, jsonify, request
+from flask_migrate import Migrate
+from flask_bootstrap import Bootstrap5 # Import the Bootstrap class from the flask_bootstrap package
+from dotenv import load_dotenv # Import the load_dotenv function from the dotenv module
+from .models import db  # Import the database object from the models package
+from config import Config # Import the Config class from the config module
+from sqlalchemy import inspect
+from flask_login import LoginManager, login_required, current_user,login_user
+from .models import Document
 
-# Use pymysql to connect to the MySQL database
-pymysql.install_as_MySQLdb()
-
-# Initialize SQLAlchemy
-db = SQLAlchemy()
-
+# migrate can be used to create and manage database migrations
+migrate = Migrate()
 
 def create_app():
+    # Load environment variables from a .env file
+    load_dotenv()  
     # Initialize the Flask app with necessary configurations & extensions
     app = Flask(__name__)
+    # Apply configuration settings from config.py with class Config
+    app.config.from_object(Config)
+    # Initialize Bootstrap with the app
     Bootstrap5(app)
+    # Initialize the app with the database
+    db.init_app(app)
+    # Initialize the app with the migration
+    migrate.init_app(app, db)
 
-    # Configure the MySQL database
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://humanitygpt_user:67ti8of87690hm@localhost/humanitygpt'
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-    # Add a secret key for CSRF protection
-    app.config['SECRET_KEY'] = '2b62b1cb0b257df9d873558f82151351e15c6ff268b20941'  
+    # Import your models and create the database tables
+    # the app.app_context() function allows you to run code within the application context
+    with app.app_context():
+        from .models import User  # Import all models
+        db.create_all()  # Create tables for all models
 
     # Set template and static folders
-    # These are mainly HTML files that are rendered by the backend
-    template_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'frontend', 'templates'))
-    app.template_folder = template_dir
-    # These are mainly CSS, JavaScript, and image files that are served by the backend
-    static_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'frontend', 'static'))
-    app.static_folder = static_dir
+    # The code's ../../.. mean that the path is going up three directories from the current file
+    app.template_folder = os.path.abspath(os.path.join(__file__, '../../../frontend/templates'))
+    app.static_folder = os.path.abspath(os.path.join(__file__, '../../../frontend/static'))
 
-
-    print(f"Template folder set to: {app.template_folder}")
-    print(f"Static folder set to: {app.static_folder}")
-
-    # Initialize the app with the database
-    from .models import User
-    db.init_app(app)
-
-    # Create the database tables
-    with app.app_context():
-        db.create_all()
-
+    # Initialize Flask-Login
+    login_manager = LoginManager()
+    # Initialize the login manager with the app
+    login_manager.init_app(app)
+    # Set the login view to the login route
+    login_manager.login_view = 'login'  # Specify what view to redirect to when login is required
+    # Set the login message category
+    @login_manager.user_loader
+    def load_user(user_id):
+        return User.query.get(int(user_id))
 
 
     # Define routes (you can move these to a separate file later if desired)
@@ -52,48 +57,139 @@ def create_app():
     # Add a new route for user pages
     @app.route('/user/<name>')
     def user(name):
+        # Query (i.e: SELECT) the database for a user with the given username
+        # The function User.query.filter_by(username=name) is equivalent to SELECT * FROM user WHERE username=name
+        # The function first_or_404() returns the first result of the query or a 404 error if no results are found
         user = User.query.filter_by(username=name).first_or_404()
-        return render_template('user.html', user=user)
+        # Query the database for all documents created by the user
+        user_documents = Document.query.filter_by(user_id=user.id).all()
+        # Render the user.html template with the user and documents
+        return render_template('user.html', user=user, documents=user_documents)
+       
 
-    
+    # Add a test route
     @app.route('/test')
     def test():
+        # Render the test.html template
         return render_template('test.html')
     # Test whether the database connection is successful
     @app.route('/test_db')
     def test_db():
+        # Try to query the database for the first user
         try:
+            # The function query(User) is equivalent to SELECT * FROM user
             db.session.query(User).first()
             return "Database connection successful!"
+        # If an exception is raised, return an error message
         except Exception as e:
             return f"Database connection failed: {str(e)}"
         
     # Add this new route for registration
     @app.route('/register', methods=['GET', 'POST'])
     def register():
+        # Import the RegistrationForm class from the forms module
         from .forms import RegistrationForm
+        # Create an instance of the RegistrationForm
         form = RegistrationForm()
+        # If the form is submitted and valid, create a new user
         if form.validate_on_submit():
+            # Create a new user adding the form data
             user = User(username=form.username.data, email=form.email.data)
+            # This function is equivalent to INSERT INTO user (username, email) VALUES (form.username.data, form.email.data)
             db.session.add(user)
+            # This function is equivalent to COMMIT
             db.session.commit()
+            # Flash a success message, the flash() function is used to display a message to the user
             flash('Congratulations, you are now a registered user!')
+            # Redirect the user to the index page. The url_for() function generates the URL for the index route
             return redirect(url_for('index'))
+        # Render the register.html template with the form object
         return render_template('register.html', title='Register', form=form)
 
-    # Add a log-in route
+    # Add a new route for login
     @app.route('/login', methods=['GET', 'POST'])
+    # Define the login function
     def login():
-        from .forms import LoginForm  # Import the login form
+        # Import the LoginForm class from the forms module
+        from .forms import LoginForm
         form = LoginForm()
         if form.validate_on_submit():
             user = User.query.filter_by(username=form.username.data).first()
             if user:
-                # Redirect to the user's personal page after a successful login
+                # login_user() is a function from Flask-Login that logs in the user
+                login_user(user)
+                flash('Logged in successfully.', 'success')
                 return redirect(url_for('user', name=user.username))
             else:
                 flash('Login unsuccessful. Please check your username.', 'danger')
         return render_template('login.html', title='Login', form=form)
+    
+    # Add a route to display the database structure
+    @app.route('/db_structure')
+    def db_structure():
+        inspector = inspect(db.engine)
+        tables = inspector.get_table_names()
+        structure = {}
+        for table in tables:
+            columns = [{
+                'name': column['name'],
+                'type': str(column['type']),
+                'nullable': column['nullable']
+            } for column in inspector.get_columns(table)]
+            structure[table] = columns
+        return jsonify(structure)
+    
+
+    @app.route('/documents')
+    @login_required
+    def documents():
+        user_documents = Document.query.filter_by(user_id=current_user.id).all()
+        return render_template('document.html', documents=user_documents)
+
+    @app.route('/create_document', methods=['GET', 'POST'])
+    @login_required
+    def create_document():
+        if request.method == 'POST':
+            title = request.form.get('title')
+            content = request.form.get('content')
+            if title:
+                new_document = Document(title=title, content=content, user_id=current_user.id)
+                db.session.add(new_document)
+                db.session.commit()
+                flash('Document created successfully!', 'success')
+                return redirect(url_for('documents'))
+        return render_template('create_document.html')
+    
+    @app.route('/view_document/<int:id>', methods=['GET', 'POST'])
+    @login_required
+    def view_document(id):
+        document = Document.query.get_or_404(id)
+        if document.user_id != current_user.id:
+            flash('You do not have permission to view this document.', 'danger')
+            return redirect(url_for('documents'))
+        
+        if request.method == 'POST':
+            document.title = request.form.get('title')
+            document.content = request.form.get('content')
+            db.session.commit()
+            flash('Document updated successfully!', 'success')
+            return redirect(url_for('view_document', id=document.id))
+        
+        return render_template('view_document.html', document=document)
+
+    @app.route('/delete_document/<int:id>', methods=['POST'])
+    @login_required
+    def delete_document(id):
+        document = Document.query.get_or_404(id)
+        if document.user_id != current_user.id:
+            flash('You do not have permission to delete this document.', 'danger')
+        else:
+            db.session.delete(document)
+            db.session.commit()
+            flash('Document deleted successfully!', 'success')
+        return redirect(url_for('documents'))
+    
+
 
 
     # Return the configured app instance
